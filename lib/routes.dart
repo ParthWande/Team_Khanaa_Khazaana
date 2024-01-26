@@ -9,6 +9,7 @@ import 'package:ivrapp/screens/home/drawer_screens/widgets/individual_prescripti
 import 'package:ivrapp/screens/home/drawer_screens/widgets/my_orders_screen.dart';
 import 'package:ivrapp/screens/home/home_screen.dart';
 import 'package:ivrapp/screens/crop_image/crop_image_screen.dart';
+import 'package:ivrapp/screens/search/search_screen.dart';
 
 Route getRoutes(RouteSettings routeSettings) {
   switch (routeSettings.name) {
@@ -51,6 +52,11 @@ Route getRoutes(RouteSettings routeSettings) {
     case MyOrdersScreen.routeName:
       return MaterialPageRoute(builder: (context) {
         return  MyOrdersScreen();
+      });
+    case SearchScreen.routeName:
+      return MaterialPageRoute(builder: (context) {
+        var searchQuery=routeSettings.arguments as String;
+        return  SearchScreen(searchQuery: searchQuery,);
       });
     default:
       return MaterialPageRoute(builder: (context) {
