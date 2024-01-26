@@ -15,12 +15,13 @@ import 'package:ivrapp/widgets/custom_textfield.dart';
 import 'package:ivrapp/widgets/show_drawer.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:badges/badges.dart' as badge;
 import '../../pick_file.dart';
+import '../../storage_methods/firestore_methods.dart';
 import '../../widgets/showAlert.dart';
+import '../cartScreen/cart_Screen.dart';
 import '../crop_image/crop_image_screen.dart';
 import '../individual_Category_page/individual_category_page.dart';
-
 late String lat;
 late String long;
 
@@ -33,12 +34,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int cartItemCount=0;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     //getData();
     AuthServices().getUserDetails(context: context);
+    getCartLength();
   }
 
   @override
@@ -50,7 +53,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void addOrder() async {
     await OrderServices().uploadOrder(context: context);
   }
-
+  Future<void> getCartLength() async {
+    cartItemCount = await FirestoreMethods().getCartItemCount();
+    setState(() {});
+  }
   @override
   Widget build(BuildContext context) {
     ModelUser user = Provider.of<UserProvider>(context).user;
@@ -59,6 +65,44 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: showDrawer(context: context),
       appBar: AppBar(
         iconTheme: IconThemeData(color: whiteColor),
+        actions: [
+          FutureBuilder(
+            builder:(context,snapshot)
+            {
+              if(snapshot.connectionState==ConnectionState.waiting)
+              {
+
+              }
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: IconButton(
+                  onPressed: ()
+                  {
+                    Navigator.pushNamed(context, CartScreen.routeName);
+                  },
+                  icon: badge.Badge(
+                    badgeAnimation: badge.BadgeAnimation.size(toAnimate: false),
+                    badgeContent: Text(
+                      cartItemCount == 0 ? 0.toString() : cartItemCount.toString(),
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: whiteColor),
+                    ),
+                    badgeStyle:
+                    badge.BadgeStyle(badgeColor: Colors.teal, elevation: 0),
+                    child: Icon(
+                      Icons.shopping_cart,
+                      color: whiteColor,
+                      size: 30,
+                    ),
+                  ),
+                ),
+              );
+            }, future: getCartLength(),
+          )
+
+        ],
       ),
       body: SingleChildScrollView(child: HomeBody()),
     );
@@ -75,6 +119,7 @@ class HomeBody extends StatefulWidget {
 class _HomeBodyState extends State<HomeBody> {
   final TextEditingController _searchcontroller = TextEditingController();
   Position? userlocation;
+  bool isLoading = false;
   @override
   void dispose() {
     // TODO: implement dispose
@@ -83,10 +128,34 @@ class _HomeBodyState extends State<HomeBody> {
   }
 
   void redirectToURL({required String query}) async {
+    setState(() {
+      isLoading = true;
+      showDialog(context: context, builder: (context){
+        return Center(
+          child: CircularProgressIndicator(
+            color: greenColor,
+          ),
+        );
+      });
+      // Navigator.push(context,
+      //     MaterialPageRoute(builder: (context) {
+      //       return Scaffold(
+      //         backgroundColor: Colors.transparent,
+      //         body: Center(
+      //           child: CircularProgressIndicator(
+      //             color: greenColor,
+      //           ),
+      //         ),
+      //       );
+      //     }));
+
+    });
     Position position = await determinePosition();
     setState(() {
       lat = position.latitude.toString();
       long = position.longitude.toString();
+      isLoading = false;
+      Navigator.of(context).pop();
     });
 
     var url = Uri.parse(

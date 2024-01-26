@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:ivrapp/httprequests/get_ocr_result.dart';
+import 'package:ivrapp/model/cart.dart';
 import 'package:ivrapp/model/prescription.dart';
 import 'package:ivrapp/providers/prescription_provider.dart';
 import 'package:ivrapp/storage_methods/store_prescriptions.dart';
@@ -12,6 +13,7 @@ import 'package:uuid/uuid.dart';
 class FirestoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
 
   Future<List<String>> uploadPrescriptionDetails(
       {required BuildContext context,
@@ -55,7 +57,6 @@ class FirestoreMethods {
           .update({"medicines": FieldValue.arrayUnion(medicines)});
 
       await FirestoreMethods().getPrescriptionDetails(context: context, id: id);
-
     } catch (err) {
       showSnackBar(context, err.toString());
     }
@@ -72,4 +73,66 @@ class FirestoreMethods {
       showSnackBar(context, err.toString());
     }
   }
+
+  Future<void> uploadToCart(
+      {required BuildContext context,
+      required String medicineName,
+        required String imageUrl,
+      required int quantity}) async {
+    List<CartItem> cart=[];
+    String id = Uuid().v4();
+    CartItem cartItem = CartItem(
+        medicineName: medicineName,
+        quantity: quantity,
+        userid: _auth.currentUser!.uid,
+        id: id, imageurl: imageUrl);
+    try {
+      await _firestore.collection('users')
+          .doc(_auth.currentUser!.uid)
+          .collection('cart')
+          .add(cartItem.toJson());
+      print('Item added to cart successfully');
+    } catch (e) {
+      print('Error adding item to cart: $e');
+      // Handle the error appropriately
+    }
+  }
+  Future<List<CartItem>> getCartItems({required BuildContext context}) async {
+    List<CartItem> cartItems = [];
+
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection('users')
+          .doc(_auth.currentUser!.uid)
+          .collection('cart')
+          .get();
+
+      for (QueryDocumentSnapshot document in querySnapshot.docs) {
+        CartItem cartItem = CartItem.fromSnap(document);
+        cartItems.add(cartItem);
+      }
+
+      return cartItems;
+    } catch (e) {
+      showSnackBar(context, e.toString()); // Return an empty list or handle the error as needed
+    }
+    return cartItems;
+  }
+  final CollectionReference usersCollection =
+  FirebaseFirestore.instance.collection('users');
+
+  Future<int> getCartItemCount() async {
+    try {
+      QuerySnapshot querySnapshot = await usersCollection
+          .doc(_auth.currentUser!.uid)
+          .collection('cart')
+          .get();
+
+      return querySnapshot.size;
+    } catch (e) {
+      print('Error retrieving cart item count: $e');
+      return 0; // Return 0 or handle the error as needed
+    }
+  }
 }
+
+

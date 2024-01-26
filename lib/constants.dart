@@ -25,7 +25,7 @@ List<String> serviceImage=
 ];
 List <String> CategoryNames=
 [
-"Tablets",
+"Tablet",
 "Cream",
 "Eye Drop",
 "Injection",

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-
+import 'package:ivrapp/constants.dart';
+import 'package:ivrapp/screens/cartScreen/cart_Screen.dart';
+import 'package:ivrapp/screens/chatscreen/chatscreen.dart';
+import 'package:ivrapp/screens/product_details/product_Details_Screen.dart';
+import 'package:badges/badges.dart' as badge;
 import '../../httprequests/get_Category_recommendations.dart';
 import '../../model/medicine.dart';
+import '../../storage_methods/firestore_methods.dart';
 
 class CategoryScreen extends StatefulWidget {
   static const routeName = '/category-screen';
@@ -14,19 +19,30 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   List<Medicine>? medicines;
+  int cartItemCount=0;
+  bool isLoading = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getMedicines();
+    getCartLength();
   }
 
   void getMedicines() async {
+    setState(() {
+      isLoading = true;
+    });
     medicines = await ProductServices()
         .getMedbyCategory(context: context, category: widget.category);
+    setState(() {
+      isLoading = false;
+    });
+  }
+  Future<void> getCartLength() async {
+    cartItemCount = await FirestoreMethods().getCartItemCount();
     setState(() {});
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,29 +57,62 @@ class _CategoryScreenState extends State<CategoryScreen> {
               Icons.search,
               size: 30,
             ),
-            onPressed: () {},
+            onPressed: ()
+            {
+
+            },
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: IconButton(
-              icon: Icon(
-                Icons.shopping_cart,
-                size: 30,
+          FutureBuilder(
+            builder:(context,snapshot)
+          {
+            if(snapshot.connectionState==ConnectionState.waiting)
+            {
+
+            }
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: IconButton(
+                onPressed: ()
+                {
+                  Navigator.pushNamed(context, CartScreen.routeName);
+                },
+                icon: badge.Badge(
+                  badgeAnimation: badge.BadgeAnimation.size(toAnimate: false),
+                  badgeContent: Text(
+                    cartItemCount == 0 ? 0.toString() : cartItemCount.toString(),
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: whiteColor),
+                  ),
+                  badgeStyle:
+                  badge.BadgeStyle(badgeColor: Colors.teal, elevation: 0),
+                  child: Icon(
+                    Icons.shopping_cart,
+                    color: whiteColor,
+                    size: 30,
+                  ),
+                ),
               ),
-              onPressed: () {},
-            ),
+            );
+          }, future: getCartLength(),
           )
         ],
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      body: ListView.builder(
-        itemBuilder: (context, index) {
-          return CategoryInfoTile(
-            medicine: medicines![index],
-          );
-        },
-        itemCount: medicines!.length,
-      ),
+      body: (isLoading)
+          ? Center(
+              child: const CircularProgressIndicator(
+              color: greenColor,
+            ),)
+          : ListView.builder(
+              itemBuilder: (context, index) {
+                return CategoryInfoTile(
+                  medicine: medicines![index],
+                );
+              },
+              itemCount: medicines!.length,
+            ),
     );
   }
 }
@@ -75,7 +124,10 @@ class CategoryInfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialButton(
-      onPressed: () {},
+      onPressed: ()
+      {
+        Navigator.pushNamed(context, ProductDetailsScreen.routeName,arguments: medicine);
+      },
       child: Container(
         margin: EdgeInsets.all(8),
         padding: EdgeInsets.all(4),
@@ -87,8 +139,8 @@ class CategoryInfoTile extends StatelessWidget {
               children: [
                 Container(
                   width: 140,
-                  child: Image.asset(
-                    'assets/drugs.png',
+                  child: Image.network(
+                    medicine.image_urls,
                     fit: BoxFit.contain,
                     width: 200,
                     height: 125,

@@ -1,22 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:ivrapp/constants.dart';
 import 'package:badges/badges.dart' as badge;
+import 'package:ivrapp/model/medicine.dart';
+import 'package:ivrapp/storage_methods/firestore_methods.dart';
+import 'package:provider/provider.dart';
+
+import '../../model/user.dart';
+import '../../providers/user_provider.dart';
+import '../auth/services/auth_services.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   static const routeName = '/product-details-screen';
-  const ProductDetailsScreen({super.key});
+  final Medicine medicine;
+  const ProductDetailsScreen({super.key, required this.medicine});
 
   @override
   State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  int cartItemCount = 0;
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    //getData();
+    getCartLength();
+  }
+
+  void getCartLength() async {
+     cartItemCount = await FirestoreMethods().getCartItemCount();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: greenColor,
-        title: Text('Medureka',style: TextStyle(color: whiteColor),),
+        title: Text(
+          'Medureka',
+          style: TextStyle(color: whiteColor),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -25,12 +49,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               icon: badge.Badge(
                 badgeAnimation: badge.BadgeAnimation.size(toAnimate: false),
                 badgeContent: Text(
-                  "2",
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold,color: whiteColor),
+                  cartItemCount == 0 ? 0.toString() : cartItemCount.toString(),
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: whiteColor),
                 ),
                 badgeStyle:
                     badge.BadgeStyle(badgeColor: Colors.teal, elevation: 0),
-                child: Icon(Icons.shopping_cart,color: whiteColor,size: 30,),
+                child: Icon(
+                  Icons.shopping_cart,
+                  color: whiteColor,
+                  size: 30,
+                ),
               ),
             ),
           )
@@ -57,7 +88,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Text(
-                      "Dolo 600mg",
+                      widget.medicine.name,
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
@@ -68,7 +99,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               ),
               Container(
                   height: MediaQuery.of(context).size.height / 2,
-                  child: Image.asset('assets/drugs.png')),
+                  child: Image.network(widget.medicine.image_urls)),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
@@ -79,16 +110,24 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               Container(
                 margin: EdgeInsets.all(8),
                 child: Text(
-                  "widget.product.description",
+                  widget.medicine.uses,
                   textAlign: TextAlign.start,
                 ),
               ),
-
               CustomTextButton(
                   buttonTitle: 'Add to Cart',
-                  callback: () async {},
-                  color: greenColor),
+                  callback: () async {
+                    await FirestoreMethods().uploadToCart(
+                        context: context,
+                        medicineName: widget.medicine.name,
+                        imageUrl: widget.medicine.image_urls,
+                        quantity: 1);
 
+                    setState(() {
+                      cartItemCount++;
+                    });
+                  },
+                  color: greenColor),
             ],
           ),
         ),

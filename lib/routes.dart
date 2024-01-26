@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ivrapp/model/medicine.dart';
 import 'package:ivrapp/model/prescription.dart';
+import 'package:ivrapp/screens/cartScreen/cart_Screen.dart';
 import 'package:ivrapp/screens/home/drawer_screens/account_screen.dart';
 import 'package:ivrapp/screens/auth/auth_screen.dart';
 import 'package:ivrapp/screens/chatscreen/chatscreen.dart';
@@ -62,12 +64,17 @@ Route getRoutes(RouteSettings routeSettings) {
       });
     case ProductDetailsScreen.routeName:
       return MaterialPageRoute(builder: (context) {
-        return  ProductDetailsScreen();
+        var medicine=routeSettings.arguments as Medicine;
+        return  ProductDetailsScreen(medicine: medicine,);
       });
     case CategoryScreen.routeName:
       return MaterialPageRoute(builder: (context) {
         var category=routeSettings.arguments as String;
         return  CategoryScreen(category: category,);
+      });
+    case CartScreen.routeName:
+      return MaterialPageRoute(builder: (context) {
+        return  CartScreen();
       });
     default:
       return MaterialPageRoute(builder: (context) {

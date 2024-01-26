@@ -20,6 +20,7 @@ class AuthServices {
       UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
       final ModelUser _user = ModelUser(
+        cart: [],
           username: username,
           email: email,
           userid: cred.user!.uid,
