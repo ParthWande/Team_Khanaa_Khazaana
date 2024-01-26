@@ -9,6 +9,7 @@ import 'package:ivrapp/screens/home/drawer_screens/widgets/individual_prescripti
 import 'package:ivrapp/screens/home/drawer_screens/widgets/my_orders_screen.dart';
 import 'package:ivrapp/screens/home/home_screen.dart';
 import 'package:ivrapp/screens/crop_image/crop_image_screen.dart';
+import 'package:ivrapp/screens/individual_Category_page/individual_category_page.dart';
 import 'package:ivrapp/screens/product_details/product_Details_Screen.dart';
 import 'package:ivrapp/screens/search/search_screen.dart';
 
@@ -62,6 +63,11 @@ Route getRoutes(RouteSettings routeSettings) {
     case ProductDetailsScreen.routeName:
       return MaterialPageRoute(builder: (context) {
         return  ProductDetailsScreen();
+      });
+    case CategoryScreen.routeName:
+      return MaterialPageRoute(builder: (context) {
+        var category=routeSettings.arguments as String;
+        return  CategoryScreen(category: category,);
       });
     default:
       return MaterialPageRoute(builder: (context) {

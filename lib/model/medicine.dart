@@ -31,5 +31,8 @@ class Medicine
 
     );
   }
-
+  static List<Medicine> fromList(List<dynamic> list) {
+    return list.map((item) => fromMap(item)).toList();
+  }
 }
+

@@ -3,6 +3,7 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:ivrapp/constants.dart';
 import 'package:ivrapp/get_user_location.dart';
+import 'package:ivrapp/httprequests/get_Category_recommendations.dart';
 import 'package:ivrapp/model/user.dart';
 import 'package:ivrapp/providers/user_provider.dart';
 import 'package:ivrapp/screens/auth/services/auth_services.dart';
@@ -18,6 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../pick_file.dart';
 import '../../widgets/showAlert.dart';
 import '../crop_image/crop_image_screen.dart';
+import '../individual_Category_page/individual_category_page.dart';
 
 late String lat;
 late String long;
@@ -58,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         iconTheme: IconThemeData(color: whiteColor),
       ),
-      body: HomeBody(),
+      body: SingleChildScrollView(child: HomeBody()),
     );
   }
 }
@@ -100,76 +102,133 @@ class _HomeBodyState extends State<HomeBody> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            SearchMed(
-                hintText: 'Search a medicine',
-                controller: _searchcontroller,
-                keyboardType: TextInputType.text),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                    child: OrderCard(
-                  cardTitle: 'Order Medicines',
-                  imageUrl: 'assets/drugs.png',
-                  callback: () {},
-                )),
-                SizedBox(
-                  width: 5,
-                ),
-                Expanded(
-                    child: OrderCard(
-                  cardTitle: 'Ask Chatbot',
-                  imageUrl: 'assets/chatbot.png',
-                  callback: () {
-                    Navigator.pushNamed(context, ChatScreen.routeName);
-                  },
-                ))
-              ],
-            ),
-            OrderOptions(),
-            Material(
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: Material(
               color: whiteColor,
               elevation: 4,
-              child: Column(
-                children: [
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Services Near You',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    SearchMed(
+                        hintText: 'Search a medicine',
+                        controller: _searchcontroller,
+                        keyboardType: TextInputType.text),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                            child: OrderCard(
+                          cardTitle: 'Order Medicines',
+                          imageUrl: 'assets/drugs.png',
+                          callback: () {},
+                          color: Color(0xFFAFFFC5),
+                        )),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        Expanded(
+                            child: OrderCard(
+                          cardTitle: 'Ask Chatbot',
+                          imageUrl: 'assets/chatbot.png',
+                          callback: () {
+                            Navigator.pushNamed(context, ChatScreen.routeName);
+                          },
+                          color: Color(0xFF8DF4F8),
+                        ))
+                      ],
                     ),
-                  ),
-                  Container(
-                    height: 150,
-                    child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: serviceNames.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ServiceCard(
-                              callback: () {
-                                redirectToURL(query: serviceNames[index]);
-                              },
-                              serviceTitle: serviceNames[index], serviceImage: serviceImage[index],
-                            ),
-                          );
-                        }),
-                  )
-                ],
+                    OrderOptions(),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          Material(
+            color: whiteColor,
+            elevation: 4,
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Services Near You',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 150,
+                  child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: serviceNames.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ServiceCard(
+                            callback: () {
+                              redirectToURL(query: serviceNames[index]);
+                            },
+                            serviceTitle: serviceNames[index],
+                            serviceImage: serviceImage[index],
+                          ),
+                        );
+                      }),
+                )
+              ],
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Material(
+            color: whiteColor,
+            elevation: 4,
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Shop by Categories',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 150,
+                  child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: CategoryNames.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ServiceCard(
+                            callback: () {
+                              Navigator.pushNamed(
+                                  context, CategoryScreen.routeName,
+                                  arguments: CategoryNames[index]);
+                            },
+                            serviceTitle: CategoryNames[index],
+                            serviceImage: CategoryImage[index],
+                          ),
+                        );
+                      }),
+                )
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -197,7 +256,8 @@ class ServiceCard extends StatelessWidget {
           padding: EdgeInsets.all(8),
           width: 180,
           decoration: BoxDecoration(
-            image: DecorationImage(image: AssetImage(serviceImage),fit: BoxFit.cover),
+            image: DecorationImage(
+                image: AssetImage(serviceImage), fit: BoxFit.cover),
             borderRadius: BorderRadius.circular(10),
             color: whiteColor,
           ),
@@ -214,10 +274,12 @@ class ServiceCard extends StatelessWidget {
 class OrderCard extends StatelessWidget {
   final String cardTitle;
   final String imageUrl;
+  final Color color;
   final VoidCallback callback;
   const OrderCard(
       {super.key,
       required this.cardTitle,
+      required this.color,
       required this.callback,
       required this.imageUrl});
 
@@ -226,7 +288,7 @@ class OrderCard extends StatelessWidget {
     return Material(
       borderRadius: BorderRadius.circular(10),
       elevation: 4,
-      color: whiteColor,
+      color: color,
       child: GestureDetector(
         onTap: callback,
         child: Container(

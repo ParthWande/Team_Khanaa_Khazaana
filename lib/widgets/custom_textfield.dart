@@ -3,10 +3,12 @@ import 'package:ivrapp/constants.dart';
 class CustomTextFormField extends StatelessWidget {
   final hintText;
   final TextEditingController controller;
+  final  maxLines;
   final TextInputType keyboardType;
   CustomTextFormField(
       {required this.hintText,
         required this.controller,
+        this.maxLines=1,
         required this.keyboardType});
 
   @override
@@ -14,6 +16,7 @@ class CustomTextFormField extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.all(8),
       child: TextFormField(
+        maxLines: maxLines,
         keyboardType: keyboardType,
         controller: controller,
         textInputAction: TextInputAction.next,

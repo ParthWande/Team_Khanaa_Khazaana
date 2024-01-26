@@ -94,6 +94,7 @@ class _MedicineListState extends State<MedicineList> {
                 ),
               ),
               CustomTextFormField(
+                maxLines: null,
                   hintText: '',
                   controller: _medcontroller,
                   keyboardType: TextInputType.text),

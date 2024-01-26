@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-
+String categories='assets/categories';
 const greenColor=Colors.green;
 const redColor=Colors.red;
 const whiteColor =Colors.white;
-const uri = 'https://4881-219-90-110-4.ngrok-free.app';
+const uri = 'https://aece-182-76-246-162.ngrok-free.app';
 const phoneNum="+18283733091";
 
 List <String> serviceNames=
@@ -22,4 +22,25 @@ List<String> serviceImage=
   'assets/pharmacy.jpg',
   'assets/pharmacy1.jpg'
 
+];
+List <String> CategoryNames=
+[
+"Tablets",
+"Cream",
+"Eye Drop",
+"Injection",
+"Syrup",
+"Gel",
+"Inhaler"
+
+];
+List<String> CategoryImage=
+[
+  '$categories/tablets.jpg',
+  '$categories/cream.jpg',
+  '$categories/eyedrop.jpg',
+  '$categories/injection.jpg',
+  '$categories/syrup.jpg',
+  '$categories/gel.jpg',
+  '$categories/inhaler.jpg',
 ];
