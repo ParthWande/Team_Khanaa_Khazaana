@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:ivrapp/constants.dart';
+import 'package:ivrapp/get_user_location.dart';
 import 'package:ivrapp/model/user.dart';
 import 'package:ivrapp/providers/user_provider.dart';
 import 'package:ivrapp/screens/auth/services/auth_services.dart';
 import 'package:ivrapp/screens/chatscreen/chatscreen.dart';
 import 'package:ivrapp/screens/home/drawer_screens/services/orders_services.dart';
+import 'package:ivrapp/screens/product_details/product_Details_Screen.dart';
 import 'package:ivrapp/screens/search/search_screen.dart';
 import 'package:ivrapp/widgets/custom_textfield.dart';
 import 'package:ivrapp/widgets/show_drawer.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../pick_file.dart';
+import '../../widgets/showAlert.dart';
+import '../crop_image/crop_image_screen.dart';
+late String lat;
+late String long;
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home-screen';
   const HomeScreen({super.key});
@@ -26,6 +34,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     //getData();
     AuthServices().getUserDetails(context: context);
+    determinePosition().then((value)
+    {
+      lat=value.latitude.toString();
+      long=value.longitude.toString();
+
+    });
   }
 
   @override
@@ -38,32 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
     await OrderServices().uploadOrder(context: context);
   }
 
-  void makeCall() async {
-    // final Uri url = Uri(scheme: "tel", path: phoneNum);
-    // try {
-    //   if (await canLaunchUrl(url)) {
-    //     await launchUrl(url);
-    //   }
-    // } catch (e) {
-    //   print(e);
-    // }
-    FlutterPhoneDirectCaller.callNumber(phoneNum);
-  }
-
   @override
   Widget build(BuildContext context) {
     ModelUser user = Provider.of<UserProvider>(context).user;
     return Scaffold(
       drawer: showDrawer(context: context),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          makeCall();
-        },
-        child: Icon(
-          Icons.phone,
-          color: Colors.black,
-        ),
-      ),
       appBar: AppBar(
         iconTheme: IconThemeData(color: whiteColor),
       ),
@@ -81,6 +74,7 @@ class HomeBody extends StatefulWidget {
 
 class _HomeBodyState extends State<HomeBody> {
   final TextEditingController _searchcontroller = TextEditingController();
+
   @override
   void dispose() {
     // TODO: implement dispose
@@ -88,6 +82,16 @@ class _HomeBodyState extends State<HomeBody> {
     _searchcontroller.dispose();
   }
 
+  void redirectToURL() async {
+    var url = Uri.parse("https://www.google.com/maps/search/hospitals/@19.021964,72.8403094,15.25z?entry=ttu");
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -121,7 +125,11 @@ class _HomeBodyState extends State<HomeBody> {
                 ))
               ],
             ),
-            OrderOptions()
+            OrderOptions(),
+            TextButton(onPressed: ()
+            {
+              print(lat);
+            }, child: Text('GET'))
           ],
         ),
       ),
@@ -212,8 +220,10 @@ class SearchMed extends StatelessWidget {
         decoration: InputDecoration(
           suffixIcon: IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, SearchScreen.routeName,
-                  arguments: controller.text.trim());
+              (controller.text.isEmpty)
+                  ? null
+                  : Navigator.pushNamed(context, SearchScreen.routeName,
+                      arguments: controller.text.trim());
             },
             icon: Icon(Icons.search),
           ),
@@ -248,6 +258,26 @@ class OrderOptions extends StatefulWidget {
 }
 
 class _OrderOptionsState extends State<OrderOptions> {
+  Map<String, dynamic>? filedetails;
+  void getCroppedImage() async {
+    filedetails = await Pickfile().cropImage(context: context);
+
+    Navigator.pushNamed(context, CropImageScreen.routeName,
+        arguments: filedetails!);
+  }
+
+  void makeCall() async {
+    // final Uri url = Uri(scheme: "tel", path: phoneNum);
+    // try {
+    //   if (await canLaunchUrl(url)) {
+    //     await launchUrl(url);
+    //   }
+    // } catch (e) {
+    //   print(e);
+    // }
+    FlutterPhoneDirectCaller.callNumber(phoneNum);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -267,43 +297,24 @@ class _OrderOptionsState extends State<OrderOptions> {
           ),
           Row(
             children: [
-              OrderTypeCard(title: "Whatsapp",icon: Icons.whatshot,),
-            OrderTypeCard(title: "Call",icon: Icons.add_call,),
+              OrderTypeCard(
+                title: "Prescription",
+                icon: Icons.camera_alt,
+                callback: () {
+                  showAlert(
+                      context: context, title: '', callback: getCroppedImage);
+                },
+              ),
+              OrderTypeCard(
+                title: "Call",
+                icon: Icons.add_call,
+                callback: () {
+                  makeCall();
+                },
+              ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Expanded(
-              child: Material(
-                color: whiteColor,
-                borderRadius: BorderRadius.circular(10),
-                elevation: 4,
-                child: Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: whiteColor),
-                  child: Row(
 
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          Icons.add_a_photo,
-                          color: Colors.green,
-                        ),
-                      ),
-                      Text('Upload Prescription'),
-                      Expanded(child: SizedBox()),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 0, 15, 0),
-                        child: Icon(Icons.add),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          )
         ],
       ),
     );
@@ -313,11 +324,12 @@ class _OrderOptionsState extends State<OrderOptions> {
 class OrderTypeCard extends StatelessWidget {
   final String title;
   final IconData icon;
-  const OrderTypeCard({
-    super.key,
-    required this.title,
-    required this.icon
-  });
+  final VoidCallback callback;
+  const OrderTypeCard(
+      {super.key,
+      required this.title,
+      required this.callback,
+      required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -328,95 +340,28 @@ class OrderTypeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           color: Colors.white,
           elevation: 4,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: whiteColor,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: Icon(icon,
-                      color: Colors.green),
-                ),
-                Text(title),
-                Icon(Icons.chevron_right)
-              ],
+          child: GestureDetector(
+            onTap: callback,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: whiteColor,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: Icon(icon, color: Colors.green),
+                  ),
+                  Text(title),
+                  Icon(Icons.chevron_right)
+                ],
+              ),
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class MyGradientDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 4, // Adjust the height of the divider
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white,
-            Colors.grey,
-            Colors.white10
-          ], // Adjust the gradient colors
-          begin: Alignment.topLeft,
-          end: Alignment.topRight,
-        ),
-      ),
-    );
-  }
-}
-
-class MyFadingGradientDividerWithText extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              height: 4, // Adjust the height of the divider
-              child: ShaderMask(
-                shaderCallback: (Rect bounds) {
-                  return LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      Colors.red, // Adjust the starting color
-                      Colors.transparent,
-                      Colors.transparent,
-                      Colors.blue, // Adjust the ending color
-                      Colors.transparent,
-                    ],
-                    stops: [0.0, 0.1, 0.5, 0.9, 1.0],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ).createShader(bounds);
-                },
-                blendMode: BlendMode.dstIn,
-                child: Container(
-                  height: double.infinity,
-                  color: Colors.transparent,
-                ),
-              ),
-            ),
-            Text(
-              'Your Centered Text',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }
