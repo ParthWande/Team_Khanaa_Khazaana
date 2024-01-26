@@ -2,28 +2,32 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Medicine
 {
-  final String medicineName;
-  final int quantity;
-  Medicine({required this.medicineName,required this.quantity});
+  final String name;
+  final String composition;
+  final String uses;
+  Medicine({required this.name,required this.composition,required this.uses});
 
   static Medicine fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
     return Medicine(
-      medicineName: snapshot["medicineName"],
-      quantity: snapshot["quantity"],
+      name: snapshot["name"],
+      composition: snapshot["composition"],
+      uses: snapshot["uses"]
 
     );
   }
 
   Map<String, dynamic> toJson() => {
-    "medicineName": medicineName,
-    "quantity": quantity,
+    "name": name,
+    "uses": uses,
+    "composition":composition
   };
 
   static Medicine fromMap(Map<String,dynamic> snapshot) {
     return Medicine(
-      medicineName: snapshot["medicineName"],
-      quantity: snapshot["quantity"],
+      name: snapshot["name"],
+      uses: snapshot["uses"],
+        composition:snapshot["composition"]
 
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:ivrapp/constants.dart';
 import 'package:ivrapp/get_user_location.dart';
 import 'package:ivrapp/model/user.dart';
@@ -17,8 +18,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../pick_file.dart';
 import '../../widgets/showAlert.dart';
 import '../crop_image/crop_image_screen.dart';
+
 late String lat;
 late String long;
+
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home-screen';
   const HomeScreen({super.key});
@@ -34,12 +37,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     //getData();
     AuthServices().getUserDetails(context: context);
-    determinePosition().then((value)
-    {
-      lat=value.latitude.toString();
-      long=value.longitude.toString();
-
-    });
   }
 
   @override
@@ -56,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     ModelUser user = Provider.of<UserProvider>(context).user;
     return Scaffold(
+      backgroundColor: Colors.green[50],
       drawer: showDrawer(context: context),
       appBar: AppBar(
         iconTheme: IconThemeData(color: whiteColor),
@@ -74,7 +72,7 @@ class HomeBody extends StatefulWidget {
 
 class _HomeBodyState extends State<HomeBody> {
   final TextEditingController _searchcontroller = TextEditingController();
-
+  Position? userlocation;
   @override
   void dispose() {
     // TODO: implement dispose
@@ -82,8 +80,15 @@ class _HomeBodyState extends State<HomeBody> {
     _searchcontroller.dispose();
   }
 
-  void redirectToURL() async {
-    var url = Uri.parse("https://www.google.com/maps/search/hospitals/@19.021964,72.8403094,15.25z?entry=ttu");
+  void redirectToURL({required String query}) async {
+    Position position = await determinePosition();
+    setState(() {
+      lat = position.latitude.toString();
+      long = position.longitude.toString();
+    });
+
+    var url = Uri.parse(
+        "https://www.google.com/maps/search/$query/@$lat,$long,15.25z?entry=ttu");
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url);
@@ -92,6 +97,7 @@ class _HomeBodyState extends State<HomeBody> {
       print(e);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -126,11 +132,79 @@ class _HomeBodyState extends State<HomeBody> {
               ],
             ),
             OrderOptions(),
-            TextButton(onPressed: ()
-            {
-              print(lat);
-            }, child: Text('GET'))
+            Material(
+              color: whiteColor,
+              elevation: 4,
+              child: Column(
+                children: [
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Services Near You',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 150,
+                    child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: serviceNames.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ServiceCard(
+                              callback: () {
+                                redirectToURL(query: serviceNames[index]);
+                              },
+                              serviceTitle: serviceNames[index], serviceImage: serviceImage[index],
+                            ),
+                          );
+                        }),
+                  )
+                ],
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class ServiceCard extends StatelessWidget {
+  final VoidCallback callback;
+  final String serviceTitle;
+  final String serviceImage;
+  const ServiceCard({
+    super.key,
+    required this.serviceTitle,
+    required this.serviceImage,
+    required this.callback,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: callback,
+      child: Material(
+        borderRadius: BorderRadius.circular(10),
+        elevation: 4,
+        child: Container(
+          padding: EdgeInsets.all(8),
+          width: 180,
+          decoration: BoxDecoration(
+            image: DecorationImage(image: AssetImage(serviceImage),fit: BoxFit.cover),
+            borderRadius: BorderRadius.circular(10),
+            color: whiteColor,
+          ),
+          child: Text(
+            serviceTitle,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          ),
         ),
       ),
     );
@@ -314,7 +388,6 @@ class _OrderOptionsState extends State<OrderOptions> {
               ),
             ],
           ),
-
         ],
       ),
     );
