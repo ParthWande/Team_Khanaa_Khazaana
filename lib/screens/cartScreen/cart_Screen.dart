@@ -102,7 +102,10 @@ class _CartScreenState extends State<CartScreen> {
                               return BuildOrdersList(cart: cart[index]);
                             }),
                       ),
-                      CustomButton(callback: (){}, buttontitle: 'Order')
+                      CustomButton(callback: ()
+                      {
+                        redirectToURL();
+                      }, buttontitle: 'Order')
                     ],
                   ),
                 );
