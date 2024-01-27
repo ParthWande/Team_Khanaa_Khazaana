@@ -4,6 +4,8 @@ import 'package:ivrapp/constants.dart';
 import 'package:ivrapp/model/cart.dart';
 import 'package:ivrapp/screens/home/drawer_screens/services/orders_services.dart';
 import 'package:ivrapp/storage_methods/firestore_methods.dart';
+import 'package:ivrapp/widgets/custom_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../model/order.dart';
 
 class CartScreen extends StatefulWidget {
@@ -25,6 +27,16 @@ class _CartScreenState extends State<CartScreen> {
     // TODO: implement initState
     super.initState();
     //getOrders();
+  }
+  void redirectToURL() async {
+    var url = Uri.parse("upi://pay?pa=9372846997@ybl&pn=Aniket&mc=&tid=&tr=Payment&tn=Payment&am=900.0&cu=INR");
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url);
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
@@ -78,14 +90,21 @@ class _CartScreenState extends State<CartScreen> {
                 )
               : Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                  child: ListView.builder(
-                      shrinkWrap: false,
-                      itemCount: cart.length,
-                      itemBuilder: (context, index) {
-                        var order = cart[index];
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                            shrinkWrap: false,
+                            itemCount: cart.length,
+                            itemBuilder: (context, index) {
+                              var order = cart[index];
 
-                        return BuildOrdersList(cart: cart[index]);
-                      }),
+                              return BuildOrdersList(cart: cart[index]);
+                            }),
+                      ),
+                      CustomButton(callback: (){}, buttontitle: 'Order')
+                    ],
+                  ),
                 );
         },
       ),

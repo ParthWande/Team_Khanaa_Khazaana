@@ -3,7 +3,7 @@ String categories='assets/categories';
 const greenColor=Colors.green;
 const redColor=Colors.red;
 const whiteColor =Colors.white;
-const uri = 'https://aece-182-76-246-162.ngrok-free.app';
+const uri = 'https://40cf-182-76-246-162.ngrok-free.app';
 const phoneNum="+18283733091";
 
 List <String> serviceNames=
