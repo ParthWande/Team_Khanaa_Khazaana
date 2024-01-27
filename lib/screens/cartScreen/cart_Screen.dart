@@ -5,6 +5,7 @@ import 'package:ivrapp/model/cart.dart';
 import 'package:ivrapp/screens/home/drawer_screens/services/orders_services.dart';
 import 'package:ivrapp/storage_methods/firestore_methods.dart';
 import 'package:ivrapp/widgets/custom_button.dart';
+import 'package:ivrapp/widgets/showSnackBar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../model/order.dart';
 
@@ -37,6 +38,10 @@ class _CartScreenState extends State<CartScreen> {
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url);
+      }
+      else
+      {
+        showSnackBar(context, 'Error opening');
       }
     } catch (e) {
       print(e);

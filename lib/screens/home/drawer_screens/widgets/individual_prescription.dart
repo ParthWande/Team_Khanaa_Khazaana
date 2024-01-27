@@ -31,6 +31,15 @@ class IndividualPrescriptionPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    'unique id: '+prescription.id.substring(prescription.id.length - 4),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  )),
+            ),
             DottedBorder(
               dashPattern: [6, 3, 6, 3],
               borderPadding: EdgeInsets.all(10),
