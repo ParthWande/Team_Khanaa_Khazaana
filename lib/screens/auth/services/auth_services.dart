@@ -25,7 +25,7 @@ class AuthServices {
           email: email,
           userid: cred.user!.uid,
           phoneNumber: '',
-          address: '');
+          address: 'Mumbai');
       await _firestore
           .collection('users')
           .doc(cred.user!.uid)

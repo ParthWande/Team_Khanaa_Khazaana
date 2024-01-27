@@ -82,6 +82,7 @@ class FirestoreMethods {
     List<CartItem> cart=[];
     String id = Uuid().v4();
     CartItem cartItem = CartItem(
+      price: 100,
         medicineName: medicineName,
         quantity: quantity,
         userid: _auth.currentUser!.uid,
@@ -132,6 +133,25 @@ class FirestoreMethods {
       print('Error retrieving cart item count: $e');
       return 0; // Return 0 or handle the error as needed
     }
+  }
+  Future<num> calculateTotalSum({required BuildContext context}) async {
+    num totalSum = 0;
+    try
+    {
+      // Query the 'carts' collection based on user ID
+      QuerySnapshot<Map<String, dynamic>> cartItems =
+      await _firestore.collection('users').doc(_auth.currentUser!.uid).collection('cart').get();
+      // Loop through the documents and add the 'price' to the total sum
+      cartItems.docs.forEach((DocumentSnapshot<Map<String, dynamic>> cartItem) {
+        totalSum += cartItem['price'] ?? 0;
+      });
+
+
+    }catch(err)
+    {
+      showSnackBar(context, err.toString());
+    }
+    return totalSum;
   }
 }
 

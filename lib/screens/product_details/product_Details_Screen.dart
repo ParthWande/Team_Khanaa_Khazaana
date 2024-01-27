@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ivrapp/constants.dart';
 import 'package:badges/badges.dart' as badge;
 import 'package:ivrapp/model/medicine.dart';
+import 'package:ivrapp/screens/cartScreen/cart_Screen.dart';
 import 'package:ivrapp/storage_methods/firestore_methods.dart';
 import 'package:provider/provider.dart';
 
@@ -29,6 +30,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   void getCartLength() async {
      cartItemCount = await FirestoreMethods().getCartItemCount();
+
     setState(() {});
   }
 
@@ -45,7 +47,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: IconButton(
-              onPressed: () {},
+              onPressed: ()
+              {
+                Navigator.pushNamed(context, CartScreen.routeName);
+              },
               icon: badge.Badge(
                 badgeAnimation: badge.BadgeAnimation.size(toAnimate: false),
                 badgeContent: Text(
@@ -93,7 +98,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     Expanded(child: SizedBox()),
-                    Text("123"),
                   ],
                 ),
               ),

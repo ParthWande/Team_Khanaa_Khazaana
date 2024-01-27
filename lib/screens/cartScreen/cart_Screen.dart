@@ -18,8 +18,10 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   List<CartItem> cart = [];
+  num totalSum = 0;
   Future<void> getOrders() async {
     cart = await FirestoreMethods().getCartItems(context: context);
+    totalSum = await FirestoreMethods().calculateTotalSum(context: context);
   }
 
   @override
@@ -28,8 +30,10 @@ class _CartScreenState extends State<CartScreen> {
     super.initState();
     //getOrders();
   }
+
   void redirectToURL() async {
-    var url = Uri.parse("upi://pay?pa=9372846997@ybl&pn=Aniket&mc=&tid=&tr=Payment&tn=Payment&am=900.0&cu=INR");
+    var url = Uri.parse(
+        "upi://pay?pa=9372846997@ybl&pn=Aniket&mc=&tid=&tr=Payment&tn=Payment&am=$totalSum.0&cu=INR");
     try {
       if (await canLaunchUrl(url)) {
         await launchUrl(url);
@@ -92,6 +96,13 @@ class _CartScreenState extends State<CartScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: Column(
                     children: [
+                      Align(
+                          alignment: Alignment.topLeft,
+                          child: Text(
+                            'Price : ' + totalSum.toString(),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 20),
+                          )),
                       Expanded(
                         child: ListView.builder(
                             shrinkWrap: false,
@@ -102,10 +113,11 @@ class _CartScreenState extends State<CartScreen> {
                               return BuildOrdersList(cart: cart[index]);
                             }),
                       ),
-                      CustomButton(callback: ()
-                      {
-                        redirectToURL();
-                      }, buttontitle: 'Order')
+                      CustomButton(
+                          callback: () {
+                            redirectToURL();
+                          },
+                          buttontitle: 'Order'),
                     ],
                   ),
                 );
@@ -138,12 +150,14 @@ class BuildOrdersList extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Row(
-
             children: [
               Container(
                 width: 100,
                 height: 100,
-                child: Image.network(cart.imageurl,fit: BoxFit.contain,),
+                child: Image.network(
+                  cart.imageurl,
+                  fit: BoxFit.contain,
+                ),
               ),
               Expanded(
                 child: Text(
