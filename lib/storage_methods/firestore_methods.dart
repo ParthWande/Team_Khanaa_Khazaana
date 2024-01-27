@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,7 +16,6 @@ class FirestoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-
   Future<List<String>> uploadPrescriptionDetails(
       {required BuildContext context,
       required Map<String, dynamic> filedetails}) async {
@@ -22,7 +23,10 @@ class FirestoreMethods {
     try {
       String url = await FirebaseStorageMethods()
           .uploadtoFirestorage(context: context, filedetails: filedetails);
-      String id = Uuid().v4();
+      Random random = Random();
+      // Generate a 4-digit random number
+      int fourDigitNumber = random.nextInt(9000) + 1000;
+      String id = fourDigitNumber.toString();
       Prescription _prescription = Prescription(
           userid: _auth.currentUser!.uid,
           prescriptionUrl: url,
@@ -77,18 +81,20 @@ class FirestoreMethods {
   Future<void> uploadToCart(
       {required BuildContext context,
       required String medicineName,
-        required String imageUrl,
+      required String imageUrl,
       required int quantity}) async {
-    List<CartItem> cart=[];
+    List<CartItem> cart = [];
     String id = Uuid().v4();
     CartItem cartItem = CartItem(
-      price: 100,
+        price: 100,
         medicineName: medicineName,
         quantity: quantity,
         userid: _auth.currentUser!.uid,
-        id: id, imageurl: imageUrl);
+        id: id,
+        imageurl: imageUrl);
     try {
-      await _firestore.collection('users')
+      await _firestore
+          .collection('users')
           .doc(_auth.currentUser!.uid)
           .collection('cart')
           .add(cartItem.toJson());
@@ -98,11 +104,13 @@ class FirestoreMethods {
       // Handle the error appropriately
     }
   }
+
   Future<List<CartItem>> getCartItems({required BuildContext context}) async {
     List<CartItem> cartItems = [];
 
     try {
-      QuerySnapshot querySnapshot = await _firestore.collection('users')
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
           .doc(_auth.currentUser!.uid)
           .collection('cart')
           .get();
@@ -114,12 +122,14 @@ class FirestoreMethods {
 
       return cartItems;
     } catch (e) {
-      showSnackBar(context, e.toString()); // Return an empty list or handle the error as needed
+      showSnackBar(context,
+          e.toString()); // Return an empty list or handle the error as needed
     }
     return cartItems;
   }
+
   final CollectionReference usersCollection =
-  FirebaseFirestore.instance.collection('users');
+      FirebaseFirestore.instance.collection('users');
 
   Future<int> getCartItemCount() async {
     try {
@@ -134,25 +144,23 @@ class FirestoreMethods {
       return 0; // Return 0 or handle the error as needed
     }
   }
+
   Future<num> calculateTotalSum({required BuildContext context}) async {
     num totalSum = 0;
-    try
-    {
+    try {
       // Query the 'carts' collection based on user ID
-      QuerySnapshot<Map<String, dynamic>> cartItems =
-      await _firestore.collection('users').doc(_auth.currentUser!.uid).collection('cart').get();
+      QuerySnapshot<Map<String, dynamic>> cartItems = await _firestore
+          .collection('users')
+          .doc(_auth.currentUser!.uid)
+          .collection('cart')
+          .get();
       // Loop through the documents and add the 'price' to the total sum
       cartItems.docs.forEach((DocumentSnapshot<Map<String, dynamic>> cartItem) {
         totalSum += cartItem['price'] ?? 0;
       });
-
-
-    }catch(err)
-    {
+    } catch (err) {
       showSnackBar(context, err.toString());
     }
     return totalSum;
   }
 }
-
-
