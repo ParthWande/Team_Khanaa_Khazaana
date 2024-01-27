@@ -1,40 +1,47 @@
-class Ocr:
-    def get_ocr(url):
-        import cv2
-        from PIL import Image
-        import pytesseract
-        import urllib
-        import numpy as np
+import fitz  # PyMuPDF
+import pytesseract
+from PIL import Image
+import re
+import cv2
+import urllib
+import numpy as np
+def extract_text_from_pdf(pdf_path):
     
-        # url = "https://pyimagesearch.com/wp-content/uploads/2015/01/opencv_logo.png"
-        url_response = urllib.request.urlopen(url)
-        img_array = np.array(bytearray(url_response.read()), dtype=np.uint8)
-        img = cv2.imdecode(img_array, -1)
-        # img=cv2.imread("data/sample.png")
-        gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        cv2.imwrite("temp/gray.png",gray)
-        blur = cv2.GaussianBlur(gray, (7,7), 0)
-        cv2.imwrite("temp/blur.png",blur)
-        thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
-        cv2.imwrite("temp/thresh.png",thresh)
-        kernal = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 13))
-        dilate = cv2.dilate(thresh, kernal, iterations=1)
-        cv2.imwrite("temp/index_kernal.png", kernal)
-        cv2.imwrite("temp/index_dilate.png", dilate)
+    text = ""
+    
+    with fitz.open(pdf_path) as pdf_document:
+        for page_num in range(pdf_document.page_count):
+            page = pdf_document[page_num]
+            text += page.get_text()
+    
+    return text
 
-        cnts = cv2.findContours(dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-        cnts = sorted(cnts, key=lambda x: cv2.boundingRect(x)[0])
-        for c in cnts:
-            x,y,w,h=cv2.boundingRect(c)
-            roi=img[y:y+h,x:x+w]
-            cv2.imwrite("data/roi.png",roi)
-            cv2.rectangle(img,(x,y),(x+w,y+h),(36,100,13),2)
-        cv2.imwrite("data/cnt.png",img)
-        ocr_res=pytesseract.image_to_string(img)
-        ocr_res=ocr_res.split("\n")
-        print(ocr_res)
-        for item in ocr_res:
-            item=item.strip()
-            print(item)
-        return ocr_res
+def extract_medicine_names_from_text(text):
+    medicine_names = []
+
+    # Use regex to find potential medicine names
+    potential_medicine_matches = re.findall(r'\b[A-Za-z]+\b', text)
+
+    # Filter out common non-medicine words
+    medicine_matches = [name for name in potential_medicine_matches if len(name) > 3]
+
+    medicine_names.extend(medicine_matches)
+
+    return medicine_names
+
+def extract_medicine_names(url):
+    url_response = urllib.request.urlopen(url)
+    img_array = np.array(bytearray(url_response.read()), dtype=np.uint8)
+    img = cv2.imdecode(img_array, -1)
+    text = pytesseract.image_to_string(img)
+    # Extract medicine names from the extracted text
+    medicine_names = extract_medicine_names_from_text(text)
+    return medicine_names
+
+# # Replace 'your_file.pdf' or 'your_image.jpg' with the path to your actual file
+# file_path = 'your_file.pdf'
+# result = extract_medicine_names(file_path)
+
+# # Display the extracted medicine names
+# print("Extracted Medicine Names:")
+# print(result)

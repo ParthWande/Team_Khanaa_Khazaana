@@ -1,10 +1,12 @@
 from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.llms import CTransformers
-from langchain.chains import RetrievalQA,ConversationalRetrievalChain
-DB_FAISS_PATH = 'vectorstore2/db_faiss'
+
+import concurrent
+from langchain.chains import RetrievalQA
+DB_FAISS_PATH = 'New folder/vectorstore/db_faiss'
 
 custom_prompt_template = """Use the following pieces of information to answer the user's question.
 If you don't know the answer, just say that you don't know, don't try to make up an answer.
@@ -68,17 +70,18 @@ def final_result(query):
     response = qa_result({'query': query})
     return response['result']
 
+def parallel_qa(query):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(final_result, query)
+        return future.result()
 
 def chatbot(userinput):
-    # user_name = input("chatbot::Hello User! Can you provide your name?\n User::")
-    # location = input(f"Hello {user_name}! Please provide your location\n User::")
-    #print("Ask your query")
+   
     user_input = userinput
     if any(word in user_input.lower() for word in ('bye','thanks','thank','time','thank you','goodbye','adios','see you later','later','farewell')):
         return ("Goodbye! If you have more questions in the future, feel free to ask. Take care!")
         
     else:
-        answer=final_result(user_input)
-        return answer           
-
+        answer = parallel_qa(user_input)
+        return answer
 
