@@ -19,7 +19,7 @@ class CartItem {
   static CartItem fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
     return CartItem(
-      price: snapshot["price"],
+      price: snapshot["price"]??0,
       userid: snapshot["userid"] ?? '',
       medicineName: snapshot["medicineName"],
       quantity: (snapshot["quantity"]),
