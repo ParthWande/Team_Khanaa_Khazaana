@@ -7,7 +7,7 @@ import requests
 import certifi
 import openai
 from common_utils import indicator
-openai.api_key = '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'
+openai.api_key ='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'
 from order_bot import OrderChatbot
 print(indicator)
 indicator = 0 
@@ -65,8 +65,8 @@ def handle_prescription():
     
     prescp_details = request.values.get('Digits', None)
     bot = order_bot.prescription_taker(prescp_details)
-    response = VoiceResponse() 
-    if bot ==2:
+   
+    if bot == '2':
             response = VoiceResponse()
             gather = Gather(action='/verify', method='POST', input='dtmf', timeout = 9)
             gather.say('Enter the prescription code',voice = 'Polly.Raveena')
@@ -84,9 +84,18 @@ def verify():
         order_bot = OrderChatbot()
     
     code = request.values.get('Digits', None)
+    print(code)
     verify = order_bot.verify(code)
+    response = VoiceResponse()
+    if verify == 'true':
+        response.say("Your code matched . Continue with your order",voice ='Polly.Raveena' )
+        response.redirect('/voice')
+    else :
+        response.say("Your code does not match any user. Continue with your order",voice ='Polly.Raveena' )
+        response.redirect('/voice')
 
-         
+    return str(response)    
+
 
 @app.route("/voice", methods=['GET', 'POST'])
 def voice():

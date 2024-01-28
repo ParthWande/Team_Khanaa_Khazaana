@@ -11,7 +11,7 @@ from firebase_admin import firestore
 import datetime
 import firebase_admin
 
-openai.api_key = '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'
+openai.api_key = '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'
 phone_number = '+919324309587'
 
 cred = credentials.Certificate("./ivrapp-a8748-firebase-adminsdk-oktco-0f76968c07.json")
@@ -274,7 +274,9 @@ class OrderChatbot:
         self.current_item = item
         available = self.check_inventory(item,self.current_quantity)
         print(self.current_item ,"is there : ",self.check_inventory(item,self.current_quantity))
-        print(self.indicator) 
+        print("Ind::",self.indicator) 
+      
+        print(available == 'prescription' and self.indicator == '2')
         if self.check_inventory(item,self.current_quantity) =='yes':
            
             order_present = -1
@@ -299,9 +301,9 @@ class OrderChatbot:
             
                 return self.ask_order(item,available)
            
-        elif available == 'prescription' and self.indicator == 0:
+        elif available == 'prescription' and self.indicator == '0':
             return "You can not order this medicine without prescription "
-        elif available == 'prescription' and self.indicator == 2:
+        elif available == 'prescription' and self.indicator == '2':
            
             if self.current_item in self.medicine:
                 order_present = -1
@@ -340,9 +342,12 @@ class OrderChatbot:
         for doc in docs:
             doc = doc.to_dict()
             code_verify = doc['id']
-            if code == code_verify:
+            print("Code type",type(int(code)))
+            print("code_verify",type(code_verify))
+            if int(code)== code_verify:
                  self.medicine = doc['medicines'] 
-        
+                 return 'true'
+            
             
     def finalize_order(self):
         if not self.order:
